@@ -88,6 +88,7 @@ function preloader_render_html() {
     $logo_url = PRELOADER_PLUGIN_URL . 'assets/logo.png';
     ?>
     <div id="site-preloader">
+        <div id="heartbeat-line"></div>
         <img src="<?php echo esc_url($logo_url); ?>" alt="Loading" class="preloader-logo">
     </div>
     <?php
@@ -100,6 +101,7 @@ function preloader_render_css() {
         return;
     }
     $fade = get_option('preloader_fade_duration', '10');
+    $animation_delay = $fade / 4; // Logo animation starts after a quarter of the total time
     ?>
     <style>
         #site-preloader {
@@ -115,17 +117,99 @@ function preloader_render_css() {
             z-index: 999999;
             transition: opacity 0.5s ease;
         }
+        /* transform: translateY(calc(-50% - 1px)); 1 px do góry */
+        #heartbeat-line {
+            position: fixed;
+            top: 50%;
+            left: -100%;
+            width: 100%;
+            height: 3px;
+            background: #ffdc5d;
+            box-shadow: 0 0 10px #ffdc5d, 0 0 20px rgba(255, 220, 93, 0.5);
+            animation: heartbeat-line <?php echo esc_attr($fade); ?>s linear 1 forwards;
+            z-index: 999998;
+            transform: translateY(-50%);
+        }
+
+        @keyframes heartbeat-line {
+    0% {
+        left: -100%;
+        opacity: 0.7;
+        box-shadow: 0 0 6px #ffdc5d;
+    }
+
+    22% {
+        opacity: 0.9;
+        box-shadow: 0 0 8px #ffdc5d;
+    }
+
+    /* wejście w flash */
+    24% {
+        opacity: 1;
+        box-shadow:
+            0 0 12px #ffdc5d,
+            0 0 22px rgba(255, 220, 93, 0.7),
+            0 0 34px rgba(255, 220, 93, 0.45);
+    }
+
+    /* trafienie w środek (M) */
+    25% {
+        opacity: 1;
+        box-shadow:
+            0 0 14px #ffdc5d,
+            0 0 28px rgba(255, 220, 93, 0.85),
+            0 0 45px rgba(255, 220, 93, 0.55);
+    }
+
+    /* utrzymaj chwilę mocny glow */
+    32% {
+        opacity: 1;
+        box-shadow:
+            0 0 14px #ffdc5d,
+            0 0 28px rgba(255, 220, 93, 0.85),
+            0 0 45px rgba(255, 220, 93, 0.55);
+    }
+
+    /* łagodne schodzenie */
+    36% {
+        opacity: 0.9;
+        box-shadow: 0 0 10px #ffdc5d;
+    }
+
+    100% {
+        left: 100%;
+        opacity: 0.7;
+        box-shadow: 0 0 6px #ffdc5d;
+    }
+}
+
+
+
         
         .preloader-logo {
             width: 150px;
             height: 150px;
             object-fit: contain;
-            animation: preloader-pulse 1.5s ease-in-out infinite;
+            position: relative;
+            z-index: 999999;
+            /* New animation properties for a specific sequence */
+            animation-name: logo-heartbeat-sequence;
+            animation-duration: 2.5s;
+            animation-timing-function: ease-in-out;
+            animation-delay: <?php echo esc_attr($animation_delay); ?>s;
+            animation-iteration-count: 1;
+            animation-fill-mode: forwards; /* Keeps the final state */
         }
         
-        @keyframes preloader-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+        @keyframes logo-heartbeat-sequence {
+            0% { transform: scale(1); }
+            20% { transform: scale(1.4); } /* Scale up and hold */
+            60% { transform: scale(1.4); }
+            65% { transform: scale(1.55); } /* First quick beat */
+            70% { transform: scale(1.4); }
+            75% { transform: scale(1.5); }  /* Second quick beat */
+            80% { transform: scale(1.4); }
+            100% { transform: scale(1.4); } /* Hold at the end */
         }
         
         .hide-loader {
